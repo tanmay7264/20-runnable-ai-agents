@@ -9,12 +9,18 @@ git clone https://github.com/tanmay7264/20-runnable-ai-agents.git
 cd 20-runnable-ai-agents
 
 cd agents/19-competitive-analysis-agent
-python3 -m pip install -r requirements.txt
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
 cp .env.example .env
-python3 agent.py --company "Nykaa" --industry "beauty ecommerce in India"
+python agent.py --company "Nykaa" --industry "beauty ecommerce in India"
 ```
 
 Most agents use an LLM provider key. Copy the agent's `.env.example` to `.env` and add your own key. Do not commit `.env` files.
+
+## Python Version
+
+Use **Python 3.13** for the smoothest classroom setup. Some current CrewAI releases do not install on Python 3.14 yet.
 
 ## Agent Index
 
@@ -45,11 +51,13 @@ Most agents use an LLM provider key. Copy the agent's `.env.example` to `.env` a
 
 1. Pick one agent folder.
 2. Read its local `README.md`.
-3. Install dependencies with `python3 -m pip install -r requirements.txt`.
-4. Copy `.env.example` to `.env`.
-5. Add your own API keys.
-6. Run `python3 agent.py`.
-7. Extend the agent for your specialization.
+3. Create a virtual environment with `python3.13 -m venv .venv`.
+4. Activate it with `source .venv/bin/activate`.
+5. Install dependencies with `python -m pip install -r requirements.txt`.
+6. Copy `.env.example` to `.env`.
+7. Add your own API keys.
+8. Run `python agent.py`.
+9. Extend the agent for your specialization.
 
 ## Recommended Assignments
 
