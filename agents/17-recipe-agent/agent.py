@@ -14,11 +14,15 @@ import json
 import os
 import re
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 RECIPE_PROMPT = """You are a professional chef and nutritionist. Given available ingredients and constraints,
 suggest 3 recipes. Return JSON:
@@ -55,7 +59,7 @@ def parse_json_response(text: str) -> dict:
 
 
 def get_recipes(ingredients: list[str], diet: str, time_limit: int, servings: int) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0.5)
 
     constraints = []
     if diet:

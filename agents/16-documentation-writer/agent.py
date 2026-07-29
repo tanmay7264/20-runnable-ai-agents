@@ -13,11 +13,15 @@ import argparse
 import ast
 import os
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
 def extract_structure(code: str) -> str:
@@ -83,7 +87,7 @@ Return the complete updated Python file with docstrings added."""
 
 
 def generate_readme(code: str, filename: str) -> str:
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = chat_llm(model="gpt-4o", temperature=0)
     structure = extract_structure(code)
     messages = [
         SystemMessage(content=README_PROMPT),
@@ -93,7 +97,7 @@ def generate_readme(code: str, filename: str) -> str:
 
 
 def add_docstrings(code: str, filename: str) -> str:
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = chat_llm(model="gpt-4o", temperature=0)
     messages = [
         SystemMessage(content=DOCSTRING_PROMPT),
         HumanMessage(content=f"Add docstrings to this Python file ({filename}):\n\n```python\n{code}\n```"),

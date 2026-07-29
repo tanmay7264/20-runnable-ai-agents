@@ -11,3 +11,10 @@ env/
 *.log
 output/
 tmp/
+
+.setup.json
+node_modules/
+web/node_modules/
+dist/
+web/dist/
+agents/*/sample_data.csv

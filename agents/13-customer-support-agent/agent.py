@@ -10,19 +10,23 @@ Usage:
 """
 
 import argparse
+import hashlib
 import os
+import sys
 from pathlib import Path
 from typing import Annotated, Literal, TypedDict
 
-from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
+from langchain_core.embeddings import Embeddings
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
-load_dotenv()
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 SAMPLE_KB = [
     "Product: CloudSync Pro. Features: real-time sync across 5 devices, 1TB storage, offline mode, version history 30 days.",
@@ -36,6 +40,23 @@ SAMPLE_KB = [
 ]
 
 ESCALATION_KEYWORDS = ["refund", "lawsuit", "furious", "fraud", "broken", "data loss", "cancel account", "charge", "billing error"]
+
+
+class HashEmbeddings(Embeddings):
+    def _embed(self, text: str) -> list[float]:
+        vector = [0.0] * 64
+        for token in text.lower().split():
+            digest = hashlib.sha256(token.encode()).digest()
+            index = int.from_bytes(digest[:2], "big") % len(vector)
+            vector[index] += 1 if digest[2] % 2 else -1
+        norm = sum(value * value for value in vector) ** 0.5 or 1
+        return [value / norm for value in vector]
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [self._embed(text) for text in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._embed(text)
 
 
 class SupportState(TypedDict):
@@ -52,7 +73,7 @@ def retrieve_context(state: SupportState) -> SupportState:
         texts = getattr(retrieve_context, "kb_texts", SAMPLE_KB)
         splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
         docs_split = splitter.create_documents(texts)
-        embeddings = OpenAIEmbeddings()
+        embeddings = HashEmbeddings()
         retrieve_context.vectorstore = FAISS.from_documents(docs_split, embeddings)
 
     docs = retrieve_context.vectorstore.similarity_search(query, k=3)
@@ -67,7 +88,7 @@ def check_escalation(state: SupportState) -> SupportState:
 
 
 def generate_response(state: SupportState) -> SupportState:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0.2)
     conversation = state["messages"][:-1]  # exclude latest user msg
 
     if state.get("escalate"):
@@ -126,6 +147,7 @@ def load_kb_texts(kb_dir: str | None) -> list[str]:
 def main():
     parser = argparse.ArgumentParser(description="Customer Support Agent")
     parser.add_argument("--kb-dir", help="Directory containing .txt or .md support knowledge base files")
+    parser.add_argument("--message", help="Single customer message (omit for interactive mode)")
     args = parser.parse_args()
 
     retrieve_context.kb_texts = load_kb_texts(args.kb_dir)
@@ -134,6 +156,14 @@ def main():
 
     agent = build_graph()
     state = {"messages": [], "user_input": "", "retrieved_context": "", "response": "", "escalate": False}
+
+    if args.message:
+        state["user_input"] = args.message
+        state["messages"].append(HumanMessage(content=args.message))
+        state = agent.invoke(state)
+        escalation_indicator = " [ESCALATED]" if state.get("escalate") else ""
+        print(f"\nAgent{escalation_indicator}: {state['response']}\n")
+        return
 
     print("\n🎧 Customer Support Agent (CloudSync Pro)")
     print("Type 'quit' to exit\n")

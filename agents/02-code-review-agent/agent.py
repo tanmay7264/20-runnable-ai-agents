@@ -12,11 +12,15 @@ Usage:
 import argparse
 import os
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the provided code and return a structured review covering:
 
@@ -30,7 +34,7 @@ Format: Use markdown. Rate overall quality as: 🟢 Good / 🟡 Needs Work / �
 
 
 def review_code(code: str, language: str = "python") -> str:
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = chat_llm(model="gpt-4o", temperature=0)
     messages = [
         SystemMessage(content=SYSTEM_PROMPT),
         HumanMessage(content=f"Review this {language} code:\n\n```{language}\n{code}\n```"),

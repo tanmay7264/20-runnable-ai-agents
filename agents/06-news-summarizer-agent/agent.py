@@ -12,11 +12,15 @@ import argparse
 import os
 
 import requests
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
@@ -37,7 +41,7 @@ def fetch_news(topic: str, count: int = 5) -> list[dict]:
 
 
 def summarize_news(topic: str, articles: list[dict]) -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
 
     articles_text = "\n\n".join(
         f"Title: {a['title']}\nSource: {a.get('source', {}).get('name', 'Unknown')}\nSummary: {a.get('description', 'N/A')}"

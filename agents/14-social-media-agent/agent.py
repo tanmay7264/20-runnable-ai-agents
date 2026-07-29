@@ -13,14 +13,18 @@ import argparse
 import os
 
 from crewai import Agent, Crew, Process, Task
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import crew_llm, load_project_env
+
+load_project_env(__file__)
 
 
 def generate_social_content(topic: str, brand: str, platforms: list[str]) -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+    llm = crew_llm(model="gpt-4o-mini", temperature=0.7)
 
     strategist = Agent(
         role="Social Media Strategist",

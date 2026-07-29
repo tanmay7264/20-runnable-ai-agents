@@ -15,11 +15,15 @@ import os
 import re
 from datetime import date, datetime
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 NOTES_PROMPT = """You are a professional meeting note-taker. Convert the meeting transcript into structured notes as JSON:
 {
@@ -77,7 +81,7 @@ def parse_json_response(text: str) -> dict:
 
 
 def generate_meeting_notes(transcript: str) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
     messages = [
         SystemMessage(content=NOTES_PROMPT),
         HumanMessage(content=f"Meeting transcript:\n\n{transcript}"),

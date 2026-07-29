@@ -8,8 +8,8 @@ Two AI agents debate any topic from opposing sides, with an impartial AI judge d
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

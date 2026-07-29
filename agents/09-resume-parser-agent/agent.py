@@ -15,11 +15,15 @@ import json
 import os
 import re
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 PARSE_PROMPT = """Extract structured information from this resume and return JSON:
 {
@@ -83,14 +87,14 @@ def read_resume_text(path: str) -> str:
 
 
 def parse_resume(text: str) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
     messages = [SystemMessage(content=PARSE_PROMPT), HumanMessage(content=text)]
     response = llm.invoke(messages)
     return parse_json_response(response.content)
 
 
 def score_fit(profile: dict, job_desc: str) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
     messages = [
         SystemMessage(content=FIT_PROMPT),
         HumanMessage(content=f"Candidate profile:\n{json.dumps(profile, indent=2)}\n\nJob description:\n{job_desc}"),

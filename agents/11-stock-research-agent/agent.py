@@ -12,9 +12,14 @@ Usage:
 import argparse
 import os
 
-from dotenv import load_dotenv
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 try:
     import yfinance as yf
@@ -23,15 +28,42 @@ except ImportError:
     HAS_YFINANCE = False
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+
+
+def fallback_stock_data(ticker: str, reason: str) -> dict:
+    return {
+        "ticker": ticker,
+        "name": ticker.upper(),
+        "sector": "N/A",
+        "industry": "N/A",
+        "price": "N/A",
+        "market_cap": 0,
+        "pe_ratio": "N/A",
+        "forward_pe": "N/A",
+        "peg_ratio": "N/A",
+        "revenue_growth": "N/A",
+        "profit_margin": "N/A",
+        "dividend_yield": 0,
+        "52w_high": "N/A",
+        "52w_low": "N/A",
+        "analyst_rating": "N/A",
+        "target_price": "N/A",
+        "description": f"Live market data was unavailable ({reason}). Provide a cautious analysis using only the ticker symbol and clearly state that live market data could not be fetched.",
+        "mock": True,
+    }
 
 
 def get_stock_data(ticker: str) -> dict:
     if not HAS_YFINANCE:
-        return {"ticker": ticker, "error": "yfinance not installed", "mock": True}
+        return fallback_stock_data(ticker, "yfinance not installed")
+    if os.getenv("ENABLE_LIVE_STOCK_DATA") != "1":
+        return fallback_stock_data(ticker, "set ENABLE_LIVE_STOCK_DATA=1 to use Yahoo Finance")
 
-    stock = yf.Ticker(ticker)
-    info = stock.info
+    try:
+        stock = yf.Ticker(ticker)
+        info = stock.info
+    except Exception as exc:
+        return fallback_stock_data(ticker, exc)
 
     return {
         "ticker": ticker,
@@ -55,7 +87,7 @@ def get_stock_data(ticker: str) -> dict:
 
 
 def analyze_stock(data: dict) -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
 
     stock_info = "\n".join(f"{k}: {v}" for k, v in data.items() if k != "description")
 

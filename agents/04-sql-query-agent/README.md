@@ -8,8 +8,8 @@ Connects to any SQLite database and answers natural language questions by genera
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

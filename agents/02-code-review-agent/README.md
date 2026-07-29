@@ -8,8 +8,8 @@ An AI agent that reviews code for bugs, security issues, performance problems, a
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

@@ -8,8 +8,8 @@ Analyzes Python code and generates comprehensive pytest test suites — happy pa
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

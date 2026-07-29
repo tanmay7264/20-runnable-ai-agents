@@ -8,8 +8,8 @@ LangGraph-powered support agent with RAG knowledge base and automatic escalation
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

@@ -12,51 +12,22 @@ Usage:
 
 import argparse
 import os
+import sys
+from pathlib import Path
 from typing import Annotated, TypedDict
 
-from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
-load_dotenv()
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
-def get_llm(model_env: str = "AI_MODEL", default_model: str = "grok-4.5", temperature: float = 0):
-    provider = os.getenv("AI_PROVIDER", "").lower()
-    groq_key = os.getenv("GROQ_API_KEY")
-    xai_key = os.getenv("XAI_API_KEY")
-    openai_key = os.getenv("OPENAI_API_KEY")
-
-    if provider == "groq" or groq_key:
-        if not groq_key:
-            raise RuntimeError("Set GROQ_API_KEY in .env to use Groq.")
-        return ChatOpenAI(
-            model=os.getenv(model_env, os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")),
-            api_key=groq_key,
-            base_url=os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1"),
-            temperature=temperature,
-        )
-
-    if provider == "xai" or xai_key:
-        if not xai_key:
-            raise RuntimeError("Set XAI_API_KEY in .env to use Grok/xAI.")
-        return ChatOpenAI(
-            model=os.getenv(model_env, os.getenv("XAI_MODEL", default_model)),
-            api_key=xai_key,
-            base_url=os.getenv("XAI_BASE_URL", "https://api.x.ai/v1"),
-            temperature=temperature,
-        )
-
-    if not openai_key:
-        raise RuntimeError("Set XAI_API_KEY for Grok/xAI or OPENAI_API_KEY for OpenAI.")
-
-    return ChatOpenAI(
-        model=os.getenv(model_env, "gpt-4o-mini"),
-        api_key=openai_key,
-        temperature=temperature,
-    )
+def get_llm(model_env: str = "AI_MODEL", default_model: str = "llama-3.3-70b-versatile", temperature: float = 0):
+    return chat_llm(model_env=model_env, model=default_model, temperature=temperature)
 
 
 class AnalysisState(TypedDict):
@@ -93,7 +64,7 @@ def analyze_competitor(state: AnalysisState) -> AnalysisState:
 
 
 def generate_report(state: AnalysisState) -> AnalysisState:
-    llm = get_llm("AI_REPORT_MODEL", default_model="grok-4.5", temperature=0)
+    llm = get_llm("AI_REPORT_MODEL", temperature=0)
 
     analyses_text = "\n\n".join(
         f"**{name}:**\n{analysis}"

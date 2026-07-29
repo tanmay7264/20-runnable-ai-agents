@@ -8,8 +8,8 @@ Generates platform-optimized social media content (Twitter/X, LinkedIn, Instagra
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

@@ -15,8 +15,8 @@ A LangGraph agent that searches the web for any topic and synthesizes a structur
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 # Edit .env and add your API keys
 ```
 

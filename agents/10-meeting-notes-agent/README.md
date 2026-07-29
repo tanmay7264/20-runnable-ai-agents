@@ -8,8 +8,8 @@ Converts meeting transcripts into structured notes with summary, action items, d
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

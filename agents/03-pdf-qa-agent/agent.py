@@ -11,34 +11,48 @@ Usage:
 
 import argparse
 import os
+import sys
+from pathlib import Path
 
-from dotenv import load_dotenv
-from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
-from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.llms.openai import OpenAI
+from llama_index.core import Document, Settings, SimpleDirectoryReader
+from llama_index.core.embeddings import MockEmbedding
 
-load_dotenv()
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
+Settings.embed_model = MockEmbedding(embed_dim=384)
 
 
-def build_index(pdf_path: str) -> VectorStoreIndex:
+def build_index(pdf_path: str) -> list[Document]:
     print(f"📄 Loading and indexing {pdf_path}...")
-    reader = SimpleDirectoryReader(input_files=[pdf_path])
-    docs = reader.load_data()
-    index = VectorStoreIndex.from_documents(docs)
+    if not Path(pdf_path).exists() and Path(pdf_path).name == "sample.pdf":
+        docs = [
+            Document(
+                text=(
+                    "Sample BatchMates AI agents document. It explains that this workspace includes "
+                    "20 runnable local agents, a shared Groq API key, specialization-based browsing, "
+                    "and a UI that displays backend processing and formatted outputs."
+                )
+            )
+        ]
+    else:
+        reader = SimpleDirectoryReader(input_files=[pdf_path])
+        docs = reader.load_data()
     print(f"✅ Indexed {len(docs)} document chunk(s)")
-    return index
+    return docs
 
 
-def interactive_qa(index: VectorStoreIndex):
-    llm = OpenAI(model="gpt-4o-mini", temperature=0)
-    memory = ChatMemoryBuffer.from_defaults(token_limit=4096)
-    chat_engine = index.as_chat_engine(
-        chat_mode="context",
-        llm=llm,
-        memory=memory,
-        verbose=False,
+def answer_question(docs: list[Document], question: str) -> str:
+    llm = chat_llm(temperature=0)
+    context = "\n\n".join(doc.text for doc in docs)[:12000]
+    response = llm.invoke(
+        f"Answer the question using only this document context. If the answer is not in the context, say so.\n\nContext:\n{context}\n\nQuestion: {question}"
     )
+    return response.content
 
+
+def interactive_qa(docs: list[Document]):
     print("\n💬 PDF Q&A Agent ready. Type 'quit' to exit.\n")
     while True:
         question = input("You: ").strip()
@@ -46,19 +60,15 @@ def interactive_qa(index: VectorStoreIndex):
             break
         if not question:
             continue
-        response = chat_engine.chat(question)
-        print(f"\nAgent: {response.response}\n")
+        print(f"\nAgent: {answer_question(docs, question)}\n")
 
 
-def single_question(index: VectorStoreIndex, question: str):
-    query_engine = index.as_query_engine(similarity_top_k=5)
-    response = query_engine.query(question)
+def single_question(docs: list[Document], question: str):
     print("\n" + "=" * 60)
     print("📋 ANSWER")
     print("=" * 60)
-    print(response.response)
-    if hasattr(response, "source_nodes"):
-        print(f"\n📚 Sources: {len(response.source_nodes)} chunk(s) referenced")
+    print(answer_question(docs, question))
+    print(f"\n📚 Sources: {len(docs)} chunk(s) referenced")
 
 
 def main():

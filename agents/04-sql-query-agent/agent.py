@@ -15,14 +15,18 @@ import os
 import sqlite3
 from urllib.parse import quote
 
-from dotenv import load_dotenv
 from langchain_community.utilities import SQLDatabase
-from langchain_openai import ChatOpenAI
 from langchain.agents import create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.agents.agent_types import AgentType
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
 def create_demo_database(db_path: str):
@@ -83,7 +87,7 @@ def sqlite_uri(db_path: str, read_only: bool = True) -> str:
 
 def build_agent(db_path: str, read_only: bool = True):
     db = SQLDatabase.from_uri(sqlite_uri(db_path, read_only=read_only))
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
     agent = create_sql_agent(
         llm=llm,

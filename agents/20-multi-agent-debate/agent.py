@@ -12,11 +12,15 @@ Usage:
 import argparse
 import os
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
 class DebateAgent:
@@ -24,7 +28,7 @@ class DebateAgent:
         self.name = name
         self.position = position
         self.expertise = expertise
-        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.6)
+        self.llm = chat_llm(model="gpt-4o-mini", temperature=0.6)
         self.arguments = []
 
     def make_argument(self, topic: str, round_num: int, opponent_last_arg: str = "") -> str:
@@ -49,7 +53,7 @@ Keep response under 150 words. Round {round_num}."""
 
 class DebateJudge:
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o", temperature=0)
+        self.llm = chat_llm(model="gpt-4o", temperature=0)
 
     def evaluate(self, topic: str, pro_agent: DebateAgent, con_agent: DebateAgent) -> dict:
         pro_args = "\n\n".join(f"Round {i+1}: {a}" for i, a in enumerate(pro_agent.arguments))

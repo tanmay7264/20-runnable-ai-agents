@@ -13,14 +13,18 @@ import argparse
 import os
 from typing import Annotated, TypedDict
 
-from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
 class ResearchState(TypedDict):
@@ -31,6 +35,17 @@ class ResearchState(TypedDict):
 
 
 def search_web(state: ResearchState) -> ResearchState:
+    if not os.getenv("TAVILY_API_KEY"):
+        return {
+            "search_results": [
+                {
+                    "title": "No Tavily key configured",
+                    "url": "local://fallback",
+                    "content": "TAVILY_API_KEY is optional. Without it, this demo synthesizes a research brief from model knowledge and clearly marks that no live web search was used.",
+                }
+            ]
+        }
+
     tool = TavilySearch(max_results=5)
     raw_results = tool.invoke(state["query"])
     if isinstance(raw_results, dict):
@@ -43,7 +58,7 @@ def search_web(state: ResearchState) -> ResearchState:
 
 
 def synthesize_report(state: ResearchState) -> ResearchState:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
 
     results_text = "\n\n".join(
         f"Source: {r.get('url', 'N/A')}\nTitle: {r.get('title', 'N/A')}\nContent: {r.get('content', '')[:500]}"

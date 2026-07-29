@@ -8,8 +8,8 @@ Automatically triages GitHub issues: assigns severity, category, labels, and rou
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

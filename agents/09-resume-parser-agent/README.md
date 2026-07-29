@@ -8,8 +8,8 @@ Parses resumes (TXT or PDF) into structured JSON and optionally scores candidate
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

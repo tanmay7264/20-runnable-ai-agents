@@ -9,8 +9,8 @@ Fetches news articles on any topic and produces a structured briefing with key t
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

@@ -8,8 +8,8 @@ Suggests 3 recipes from your available ingredients with full instructions, nutri
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

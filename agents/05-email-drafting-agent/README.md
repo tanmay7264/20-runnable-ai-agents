@@ -8,8 +8,8 @@ A CrewAI two-agent system that drafts professional emails. An analyst agent extr
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

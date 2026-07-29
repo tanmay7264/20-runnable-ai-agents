@@ -13,11 +13,15 @@ import argparse
 import os
 
 import pandas as pd
-from dotenv import load_dotenv
 from langchain_experimental.agents import create_pandas_dataframe_agent
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 
 def create_sample_data(path: str):
@@ -74,7 +78,7 @@ def main():
         print("Run again with --allow-dangerous-code only with trusted prompts and non-sensitive data.")
         return
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = chat_llm(model="gpt-4o", temperature=0)
     agent = create_pandas_dataframe_agent(
         llm,
         df,

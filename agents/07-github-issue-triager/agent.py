@@ -14,11 +14,15 @@ import os
 import json
 import re
 
-from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 TRIAGE_PROMPT = """You are a GitHub issue triager. Analyze the issue and return a JSON object with:
 {
@@ -47,7 +51,7 @@ def parse_json_response(text: str) -> dict:
 
 
 def triage_issue(title: str, body: str, labels: list[str] = None) -> dict:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = chat_llm(model="gpt-4o-mini", temperature=0)
 
     issue_text = f"Title: {title}\n\nBody:\n{body}"
     if labels:

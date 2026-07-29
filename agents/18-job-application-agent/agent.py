@@ -1,5 +1,5 @@
 """
-Job Application Agent using CrewAI.
+Job Application Agent using a shared Groq-backed LLM.
 
 Analyzes a job description and a candidate profile, then generates:
 - Tailored cover letter
@@ -13,11 +13,15 @@ Usage:
 import argparse
 import os
 
-from crewai import Agent, Crew, Process, Task
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import chat_llm, load_project_env
+
+load_project_env(__file__)
 
 SAMPLE_JOB = """Senior Python Engineer at Stripe
 We're looking for a Senior Python Engineer to join our API Platform team.
@@ -51,55 +55,23 @@ Education: BS Computer Science, UC Berkeley
 
 
 def run_job_application_crew(job_desc: str, candidate_profile: str) -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
-
-    analyst = Agent(
-        role="Job Requirements Analyst",
-        goal="Analyze the job description and identify key requirements, values, and culture signals",
-        backstory="Ex-hiring manager at FAANG with 10 years recruiting experience. Expert at decoding job descriptions.",
-        llm=llm,
-        verbose=False,
-    )
-
-    writer = Agent(
-        role="Career Coach and Application Writer",
-        goal="Create tailored application materials that maximize interview chances",
-        backstory="Career coach who has helped 500+ candidates land roles at top tech companies.",
-        llm=llm,
-        verbose=False,
-    )
-
-    analyst_task = Task(
-        description=f"""Analyze this job description:
+    llm = chat_llm(temperature=0.4)
+    response = llm.invoke([
+        SystemMessage(content="You are a hiring manager and career coach. Create concise, tailored application materials that maximize interview chances."),
+        HumanMessage(content=f"""Job description:
 {job_desc}
 
-Extract: top 5 required skills, culture signals, what this company values most, potential red flags, and key phrases to mirror in the application.""",
-        agent=analyst,
-        expected_output="Job analysis: key requirements, culture signals, important keywords",
-    )
-
-    application_task = Task(
-        description=f"""Using the job analysis, create application materials for this candidate:
+Candidate profile:
 {candidate_profile}
 
 Produce:
-1. COVER LETTER (250-300 words, 3 paragraphs: hook, evidence, close)
-2. TOP 5 RESUME BULLETS TO HIGHLIGHT (tailored to this specific role)
-3. 10 LIKELY INTERVIEW QUESTIONS (5 behavioral, 5 technical) with suggested answer frameworks
-4. NEGOTIATION RANGE ESTIMATE based on role seniority and company""",
-        agent=writer,
-        expected_output="Cover letter, resume bullets, interview questions, salary range",
-        context=[analyst_task],
-    )
-
-    crew = Crew(
-        agents=[analyst, writer],
-        tasks=[analyst_task, application_task],
-        process=Process.sequential,
-        verbose=False,
-    )
-
-    return str(crew.kickoff())
+1. JOB MATCH ANALYSIS with top required skills, culture signals, and keywords to mirror.
+2. COVER LETTER in 3 short paragraphs.
+3. TOP 5 RESUME BULLETS tailored to the role.
+4. 10 LIKELY INTERVIEW QUESTIONS, split into 5 behavioral and 5 technical.
+5. NEGOTIATION RANGE ESTIMATE based on seniority, with a note that candidates should verify local market data."""),
+    ])
+    return response.content
 
 
 def main():

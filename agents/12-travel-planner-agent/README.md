@@ -8,8 +8,8 @@ Three-agent CrewAI system that creates personalized travel itineraries with dest
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

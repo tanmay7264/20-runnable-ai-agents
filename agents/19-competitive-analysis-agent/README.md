@@ -8,8 +8,8 @@ LangGraph multi-step agent that identifies competitors, analyzes each one, and g
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

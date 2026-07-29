@@ -6,8 +6,8 @@ Each folder is a self-contained, runnable AI agent. No monorepo setup needed.
 
 ```bash
 cd agents/<agent-name>
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env   # fill in your API keys
 python agent.py
 ```
 

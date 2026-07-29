@@ -9,8 +9,8 @@ Fetches real-time stock data via Yahoo Finance and generates an AI-powered inves
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run

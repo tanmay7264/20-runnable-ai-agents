@@ -14,14 +14,18 @@ import argparse
 import os
 
 from crewai import Agent, Crew, Process, Task
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-load_dotenv()
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from common import crew_llm, load_project_env
+
+load_project_env(__file__)
 
 
 def build_travel_crew(destination: str, days: int, budget: float, interests: str) -> str:
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
+    llm = crew_llm(model="gpt-4o-mini", temperature=0.4)
 
     researcher = Agent(
         role="Destination Researcher",

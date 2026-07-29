@@ -8,8 +8,8 @@ Chat with your data. Load any CSV or Excel file and ask analytical questions in 
 ## Setup
 
 ```bash
+../../setup.sh
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
 ## Run
